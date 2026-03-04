@@ -1,33 +1,43 @@
 package repository
 
 import (
-	"net/http"
+	"goApiEM/internal/model"
+	"log"
 	"sync"
-	"time"
 
 	"dev.gaijin.team/go/golib/logger"
 	"gorm.io/gorm"
 )
 
-type Repository struct {
+// SubRepo - репозитоия для работы с подписками
+type SubRepo struct {
 	DB  *gorm.DB
 	Log *logger.Logger
+	mu  sync.Mutex
 }
 
-type serviceRepository struct {
-	gorm.Model
-	mu           sync.Mutex ""
-	esrvice_name string     ""
-	price        int64      ""
-	user_id      int64      ""
-	start_date   time.Time  ""
-	end_date     time.Time  ""
+// NewSubRepo - создаёт новую запись сервиса
+func NewSubRepo(db *gorm.DB) *SubRepo {
+	return &SubRepo{
+		DB: db,
+		mu: sync.Mutex{},
+	}
 }
 
-// NewServicserviceRepository - создаёт новую запись сервиса
-func (r *Repository) NewServicserviceRepository(w http.ResponseWriter, req *http.Request) *serviceRepository {
-	r.Log.Info("Create service")
+func (r *SubRepo) AutoMigrate() error {
+	log.Println("Запуск миграции...")
 
+	if err := r.DB.Exec(`Создаем расширение если не существует "uuid-ossp"`).Error; err != nil {
+		return err
+	}
+
+	err := r.DB.AutoMigrate(&model.Sub{})
+	if err != nil {
+		return err
+	}
+
+	log.Println("Миграция завершена!")
+	return nil
 }
 
 func Create() {
@@ -46,6 +56,6 @@ func Delete() {
 	//todo
 }
 
-func GetAllCost() {
+func GetAllPrice() {
 	//todo
 }
