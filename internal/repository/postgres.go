@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// Config - структура
 type Config struct {
 	Host     string
 	Port     string
@@ -16,6 +17,7 @@ type Config struct {
 	SSLMode  string
 }
 
+// NewConnection - подключение к базе
 func NewConnection(config *Config) (*gorm.DB, error) {
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
@@ -28,6 +30,7 @@ func NewConnection(config *Config) (*gorm.DB, error) {
 	return db, err
 }
 
+// GetDSN - возвращает dsn
 func (c *Config) GetDSN() string {
 	return fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",

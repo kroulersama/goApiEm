@@ -1,15 +1,16 @@
 package repository
 
 import (
-	"goApiEM/internal/model"
 	"log"
 	"sync"
+	"time"
 
 	"dev.gaijin.team/go/golib/logger"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
-// SubRepo - репозитоия для работы с подписками
+// SubRepo - репозиторий для работы с подписками
 type SubRepo struct {
 	DB  *gorm.DB
 	Log *logger.Logger
@@ -24,6 +25,7 @@ func NewSubRepo(db *gorm.DB) *SubRepo {
 	}
 }
 
+// AutoMigrate - авто миграции от gorm
 func (r *SubRepo) AutoMigrate() error {
 	log.Println("Запуск миграции...")
 
@@ -31,7 +33,7 @@ func (r *SubRepo) AutoMigrate() error {
 		return err
 	}
 
-	err := r.DB.AutoMigrate(&model.Sub{})
+	err := r.DB.AutoMigrate(&Sub{})
 	if err != nil {
 		return err
 	}
@@ -40,22 +42,58 @@ func (r *SubRepo) AutoMigrate() error {
 	return nil
 }
 
-func Create() {
-	// todo
+func (r *SubRepo) Create(db *gorm.DB, sub Sub) *Sub {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	db.Create(sub)
+
+	return &sub
 }
 
-func Reed() {
-	// todo
+func (r *SubRepo) Reed(db *gorm.DB, id int64) *Sub {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	var sub Sub
+
+	db.First(&sub, id)
+
+	return &sub
 }
 
-func Update() {
-	// todo
+func (r *SubRepo) Update(db *gorm.DB, sub Sub) *Sub {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	db.Save(&sub)
+
+	return &sub
 }
 
-func Delete() {
-	//todo
+func (r *SubRepo) Delete(db *gorm.DB, id int64) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	var sub Sub
+	db.First(&sub, id)
+
+	db.Delete(&sub)
+
 }
 
-func GetAllPrice() {
-	//todo
+func (r *SubRepo) GetPriceForRange(db *gorm.DB, idUser uuid.UUID, idSub uuid.UUID, startData time.Time, endData time.Time) int64 {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	var prices int64
+	db.Model(&Sub{}).
+		Where(&Sub{ID: idSub, UserID: idUser}).
+		Where("start_date >= ?", startData).
+		Where("end_date <= ?", endData).
+		Select("COALESCE(SUM(price), 0)").
+		Row().
+		Scan(&prices)
+
+	return prices
 }
