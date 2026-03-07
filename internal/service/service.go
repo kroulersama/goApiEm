@@ -27,7 +27,7 @@ func NewSubSevrice(repo SubRepo) *SubService { return &SubService{repo: repo} }
 
 // CreateSub - создание новой подписки
 func (s *SubService) CreateSub(name string, price int, userID uuid.UUID,
-	startDate time.Time, endDate *time.Time) repository.Sub {
+	startDate time.Time, endDate *time.Time) (repository.Sub, error) {
 
 	sub := repository.Sub{
 		Name:      name,
@@ -39,7 +39,7 @@ func (s *SubService) CreateSub(name string, price int, userID uuid.UUID,
 
 	s.repo.Create(sub)
 
-	return sub
+	return sub, nil
 
 }
 
@@ -69,11 +69,11 @@ func (s *SubService) UpdateSub(id uuid.UUID, name string, price int, userID uuid
 }
 
 // DeleteSub - удаление записи подписки по id
-func (s *SubService) DeleteSub(id int64) int64 {
+func (s *SubService) DeleteSub(id int64) (int64, error) {
 
 	s.repo.Delete(id)
 
-	return id
+	return id, nil
 }
 
 // GetPriceForRangeSub - подсчёт суммы подписок за период времени по id подписки и id юзера
