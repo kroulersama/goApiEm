@@ -7,8 +7,8 @@ import (
 )
 
 type Sub struct {
-	ID        uuid.UUID  `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
-	Name      string     `gorm:"size:255;not null" json:"name"`
+	ID        int64      `gorm:"primaryKey;autoIncrement" json:"id"`
+	Name      string     `gorm:"size:255;not null" json:"service_name"`
 	Price     int        `gorm:"not null" json:"price"`
 	UserID    uuid.UUID  `gorm:"type:uuid;not null" json:"user_id"`
 	StartDate time.Time  `gorm:"not null" json:"start_date"`

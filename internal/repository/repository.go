@@ -48,7 +48,7 @@ func (r *SubRepo) Create(sub Sub) *Sub {
 }
 
 // ReedById - чтение одной записи по id
-func (r *SubRepo) ReedByID(id int64) *Sub {
+func (r *SubRepo) GetByID(id int64) *Sub {
 
 	var sub Sub
 
@@ -76,7 +76,7 @@ func (r *SubRepo) Delete(id int64) {
 }
 
 // GetPriceForRange - выявление суммы подписки за период времени по id подписки, и id юзера
-func (r *SubRepo) GetPriceForRange(idUser uuid.UUID, idSub uuid.UUID,
+func (r *SubRepo) GetPriceForRange(idSub int64, idUser uuid.UUID,
 	startData time.Time, endData time.Time) int64 {
 
 	var prices int64

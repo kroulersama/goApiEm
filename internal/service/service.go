@@ -10,11 +10,32 @@ import (
 // SubRepo - интерфейс для работы с репозиторием подписок
 type SubRepo interface {
 	Create(sub repository.Sub) *repository.Sub
-	ReedByID(id int64) *repository.Sub
+	GetByID(id int64) *repository.Sub
 	Update(sub repository.Sub) *repository.Sub
 	Delete(id int64)
-	GetPriceForRange(idUser uuid.UUID, idSub uuid.UUID,
+	GetPriceForRange(idSub int64, idUser uuid.UUID,
 		startData time.Time, endData time.Time) int64
+}
+
+// subTestRepo - тестовый репозиторий
+type subTestRepo struct {
+}
+
+func (r *subTestRepo) Create(sub repository.Sub) *repository.Sub {
+	return &repository.Sub{}
+}
+
+func (r *subTestRepo) GetByID(id int64) *repository.Sub {
+	return &repository.Sub{}
+}
+func (r *subTestRepo) Update(sub repository.Sub) *repository.Sub {
+	return &repository.Sub{}
+}
+func (r *subTestRepo) Delete(id int64) {}
+
+func (r *subTestRepo) GetPriceForRange(idSub int64, idUser uuid.UUID,
+	startData time.Time, endData time.Time) int64 {
+	return 0
 }
 
 // SubService - бизнесс-логика для работы с подписками
@@ -44,16 +65,16 @@ func (s *SubService) CreateSub(name string, price int, userID uuid.UUID,
 }
 
 // ReedByIDSub - чтение записи подписки по id
-func (s *SubService) ReedByIDSub(id int64) *repository.Sub {
+func (s *SubService) GetByIDSub(id int64) (*repository.Sub, error) {
 
-	sub := s.repo.ReedByID(id)
+	sub := s.repo.GetByID(id)
 
-	return sub
+	return sub, nil
 }
 
 // UpdateSub - обновляет запись подписки
-func (s *SubService) UpdateSub(id uuid.UUID, name string, price int, userID uuid.UUID,
-	startDate time.Time, endDate *time.Time) repository.Sub {
+func (s *SubService) UpdateSub(id int64, name string, price int, userID uuid.UUID,
+	startDate time.Time, endDate *time.Time) (repository.Sub, error) {
 
 	sub := repository.Sub{
 		ID:        id,
@@ -65,22 +86,22 @@ func (s *SubService) UpdateSub(id uuid.UUID, name string, price int, userID uuid
 	}
 	s.repo.Update(sub)
 
-	return sub
+	return sub, nil
 }
 
 // DeleteSub - удаление записи подписки по id
-func (s *SubService) DeleteSub(id int64) (int64, error) {
+func (s *SubService) DeleteSub(id int64) error {
 
 	s.repo.Delete(id)
 
-	return id, nil
+	return nil
 }
 
 // GetPriceForRangeSub - подсчёт суммы подписок за период времени по id подписки и id юзера
-func (s *SubService) GetPriceForRangeSub(idUser uuid.UUID, idSub uuid.UUID,
-	startData time.Time, endData time.Time) int64 {
+func (s *SubService) GetPriceForRangeSub(idSub int64, idUser uuid.UUID,
+	startData time.Time, endData time.Time) (int64, error) {
 
-	prices := s.repo.GetPriceForRange(idUser, idSub, startData, endData)
+	prices := s.repo.GetPriceForRange(idSub, idUser, startData, endData)
 
-	return prices
+	return prices, nil
 }
