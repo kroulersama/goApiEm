@@ -2,7 +2,6 @@ package repository
 
 import (
 	"log"
-	"sync"
 	"time"
 
 	"dev.gaijin.team/go/golib/logger"
@@ -14,14 +13,12 @@ import (
 type SubRepo struct {
 	DB  *gorm.DB
 	Log *logger.Logger
-	mu  sync.Mutex
 }
 
 // NewSubRepo - создаёт новую запись сервиса
 func NewSubRepo(db *gorm.DB) *SubRepo {
 	return &SubRepo{
 		DB: db,
-		mu: sync.Mutex{},
 	}
 }
 
@@ -29,7 +26,7 @@ func NewSubRepo(db *gorm.DB) *SubRepo {
 func (r *SubRepo) AutoMigrate() error {
 	log.Println("Запуск миграции...")
 
-	if err := r.DB.Exec(`Создаем расширение если не существует "uuid-ossp"`).Error; err != nil {
+	if err := r.DB.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`).Error; err != nil {
 		return err
 	}
 
@@ -42,52 +39,48 @@ func (r *SubRepo) AutoMigrate() error {
 	return nil
 }
 
-func (r *SubRepo) Create(db *gorm.DB, sub Sub) *Sub {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+// Create - создание записи в базе
+func (r *SubRepo) Create(sub Sub) *Sub {
 
-	db.Create(sub)
+	r.DB.Create(sub)
 
 	return &sub
 }
 
-func (r *SubRepo) Reed(db *gorm.DB, id int64) *Sub {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+// ReedById - чтение одной записи по id
+func (r *SubRepo) ReedByID(id int64) *Sub {
 
 	var sub Sub
 
-	db.First(&sub, id)
+	r.DB.First(&sub, id)
 
 	return &sub
 }
 
-func (r *SubRepo) Update(db *gorm.DB, sub Sub) *Sub {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+// Update - обновление инфолмации записи
+func (r *SubRepo) Update(sub Sub) *Sub {
 
-	db.Save(&sub)
+	r.DB.Save(&sub)
 
 	return &sub
 }
 
-func (r *SubRepo) Delete(db *gorm.DB, id int64) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+// Delete - удалиние записи из базы по id
+func (r *SubRepo) Delete(id int64) {
 
 	var sub Sub
-	db.First(&sub, id)
+	r.DB.First(&sub, id)
 
-	db.Delete(&sub)
+	r.DB.Delete(&sub)
 
 }
 
-func (r *SubRepo) GetPriceForRange(db *gorm.DB, idUser uuid.UUID, idSub uuid.UUID, startData time.Time, endData time.Time) int64 {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+// GetPriceForRange - выявление суммы подписки за период времени по id подписки, и id юзера
+func (r *SubRepo) GetPriceForRange(idUser uuid.UUID, idSub uuid.UUID,
+	startData time.Time, endData time.Time) int64 {
 
 	var prices int64
-	db.Model(&Sub{}).
+	r.DB.Model(&Sub{}).
 		Where(&Sub{ID: idSub, UserID: idUser}).
 		Where("start_date >= ?", startData).
 		Where("end_date <= ?", endData).
