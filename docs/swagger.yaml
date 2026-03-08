@@ -1,0 +1,241 @@
+basePath: /
+definitions:
+  goApiEM_internal_repository.Sub:
+    properties:
+      end_date:
+        type: string
+      id:
+        type: integer
+      price:
+        type: integer
+      service_name:
+        type: string
+      start_date:
+        type: string
+      user_id:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API для управления подписками
+  title: Subscriptions API
+  version: 1.0.0
+paths:
+  /subs:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список всех подписок
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/goApiEM_internal_repository.Sub'
+            type: array
+        "500":
+          description: внутренняя ошибка
+          schema:
+            type: string
+      summary: Получить все подписки
+      tags:
+      - subscriptions
+    post:
+      consumes:
+      - application/json
+      description: Создаёт новую подписку
+      parameters:
+      - description: Данные подписки
+        in: body
+        name: request
+        required: true
+        schema:
+          properties:
+            end_date:
+              type: string
+            name:
+              type: string
+            price:
+              type: integer
+            start_date:
+              type: string
+            user_id:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/goApiEM_internal_repository.Sub'
+        "400":
+          description: некорректный JSON
+          schema:
+            type: string
+        "500":
+          description: внутренняя ошибка
+          schema:
+            type: string
+      summary: Создать подписку
+      tags:
+      - subscriptions
+  /subs/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Удаляет подписку по ID
+      parameters:
+      - description: ID подписки
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: некорректный id
+          schema:
+            type: string
+        "404":
+          description: подписка не найдена
+          schema:
+            type: string
+        "500":
+          description: внутренняя ошибка
+          schema:
+            type: string
+      summary: Удалить подписку
+      tags:
+      - subscriptions
+    get:
+      consumes:
+      - application/json
+      description: Возвращает подписку по её идентификатору
+      parameters:
+      - description: ID подписки
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/goApiEM_internal_repository.Sub'
+        "400":
+          description: некорректный id
+          schema:
+            type: string
+        "404":
+          description: подписка не найдена
+          schema:
+            type: string
+        "500":
+          description: внутренняя ошибка
+          schema:
+            type: string
+      summary: Получить подписку по ID
+      tags:
+      - subscriptions
+    post:
+      consumes:
+      - application/json
+      description: Обновляет существующую подписку
+      parameters:
+      - description: ID подписки
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные для обновления
+        in: body
+        name: request
+        required: true
+        schema:
+          properties:
+            end_date:
+              type: string
+            price:
+              type: integer
+            service_name:
+              type: string
+            start_date:
+              type: string
+            user_id:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/goApiEM_internal_repository.Sub'
+        "400":
+          description: некорректный JSON или id
+          schema:
+            type: string
+        "404":
+          description: подписка не найдена
+          schema:
+            type: string
+        "500":
+          description: внутренняя ошибка
+          schema:
+            type: string
+      summary: Обновить подписку
+      tags:
+      - subscriptions
+  /subs/{id}/prices:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает сумму всех подписок за указанный период
+      parameters:
+      - description: ID подписки
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Параметры периода
+        in: body
+        name: request
+        required: true
+        schema:
+          properties:
+            end_date:
+              type: string
+            start_date:
+              type: string
+            user_id:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: сумма
+          schema:
+            format: int64
+            type: integer
+        "400":
+          description: некорректный id или JSON
+          schema:
+            type: string
+        "500":
+          description: внутренняя ошибка
+          schema:
+            type: string
+      summary: Получить сумму за период
+      tags:
+      - analytics
+swagger: "2.0"

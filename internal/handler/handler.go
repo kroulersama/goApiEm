@@ -10,7 +10,10 @@ import (
 	"strconv"
 	"time"
 
+	_ "goApiEM/docs"
+
 	"github.com/google/uuid"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 // handler - HTTP-обработчик
@@ -28,9 +31,22 @@ func (h *handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("DELETE /subs/{id}", h.DeleteSubs)
 	mux.HandleFunc("GET /subs", h.GetSubs)
 	mux.HandleFunc("GET /subs/{id}/prices", h.GetPrices)
+	mux.Handle("/swagger/", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"),
+	))
 }
 
-// CreateSubs - создаёт подписку
+// CreateSubs
+// @Summary      Создать подписку
+// @Description  Создаёт новую подписку
+// @Tags         subs
+// @Accept       json
+// @Produce      json
+// @Param        request body object{name=string,price=int,user_id=string,start_date=string,end_date=string} true "Данные подписки"
+// @Success      201  {object}  repository.Sub
+// @Failure      400  {string}  string "некорректный JSON"
+// @Failure      500  {string}  string "внутренняя ошибка"
+// @Router       /subs [post]
 func (h *handler) CreateSubs(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Name      string     `json:"name"`
@@ -59,7 +75,18 @@ func (h *handler) CreateSubs(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GetSubByID - выдаёт подписку по id
+// GetSubByID
+// @Summary      Получить подписку по ID
+// @Description  Возвращает подписку по её идентификатору
+// @Tags         subs
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "ID подписки"
+// @Success      200  {object}  repository.Sub
+// @Failure      400  {string}  string "некорректный id"
+// @Failure      404  {string}  string "подписка не найдена"
+// @Failure      500  {string}  string "внутренняя ошибка"
+// @Router       /subs/{id} [get]
 func (h *handler) GetSubByID(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
@@ -86,7 +113,19 @@ func (h *handler) GetSubByID(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// UpdareSub - обновляет действующую подписку
+// UpdateSub
+// @Summary      Обновить подписку
+// @Description  Обновляет существующую подписку
+// @Tags         subs
+// @Accept       json
+// @Produce      json
+// @Param        id      path      int                                  true  "ID подписки"
+// @Param        request body      object{service_name=string,price=int,user_id=string,start_date=string,end_date=string} true "Данные для обновления"
+// @Success      200     {object}  repository.Sub
+// @Failure      400     {string}  string "некорректный JSON или id"
+// @Failure      404     {string}  string "подписка не найдена"
+// @Failure      500     {string}  string "внутренняя ошибка"
+// @Router       /subs/{id} [post]
 func (h *handler) UpdateSub(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Name      string     `json:"service_name"`
@@ -127,7 +166,18 @@ func (h *handler) UpdateSub(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// DeleteSubs - удаляет подписку по id
+// DeleteSubs
+// @Summary      Удалить подписку
+// @Description  Удаляет подписку по ID
+// @Tags         subs
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "ID подписки"
+// @Success      204  "No Content"
+// @Failure      400  {string}  string "некорректный id"
+// @Failure      404  {string}  string "подписка не найдена"
+// @Failure      500  {string}  string "внутренняя ошибка"
+// @Router       /subs/{id} [delete]
 func (h *handler) DeleteSubs(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
@@ -151,7 +201,15 @@ func (h *handler) DeleteSubs(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// GetSubs - возвращает все подписки
+// GetSubs
+// @Summary      Получить все подписки
+// @Description  Возвращает список всех подписок
+// @Tags         subs
+// @Accept       json
+// @Produce      json
+// @Success      200  {array}   repository.Sub
+// @Failure      500  {string}  string "внутренняя ошибка"
+// @Router       /subs [get]
 func (h *handler) GetSubs(w http.ResponseWriter, r *http.Request) {
 
 	subs, err := h.service.GetSubs()
@@ -172,7 +230,18 @@ func (h *handler) GetSubs(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GetPrices - возврящает сумму подписки за период по id юзера и id подписки
+// GetPrices
+// @Summary      Получить сумму за период
+// @Description  Возвращает сумму всех подписок за указанный период
+// @Tags         subs
+// @Accept       json
+// @Produce      json
+// @Param        id           path      int    true  "ID подписки"
+// @Param        request      body      object{user_id=string,start_date=string,end_date=string} true "Параметры периода"
+// @Success      200          {object}  int64 "сумма"
+// @Failure      400          {string}  string "некорректный id или JSON"
+// @Failure      500          {string}  string "внутренняя ошибка"
+// @Router       /subs/{id}/prices [get]
 func (h *handler) GetPrices(w http.ResponseWriter, r *http.Request) {
 
 	idStr := r.PathValue("id")

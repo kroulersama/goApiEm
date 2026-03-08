@@ -14,6 +14,12 @@ import (
 	"gorm.io/gorm/logger"
 )
 
+// @title           Subscriptions API
+// @version         1.0.0
+// @description     API для управления подписками
+// @host            localhost:8080
+// @BasePath        /
+
 func main() {
 	// Загрузка .env
 	if err := godotenv.Load("internal/config/.env"); err != nil {
