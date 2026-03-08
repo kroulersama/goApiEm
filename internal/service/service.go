@@ -18,19 +18,6 @@ type SubRepo interface {
 		startData time.Time, endData time.Time) (int64, error)
 }
 
-// subTestRepo - тестовый репозиторий
-type subTestRepo struct{}
-
-func (r *subTestRepo) Create(sub repository.Sub) error           { return nil }
-func (r *subTestRepo) GetByID(id int64) (*repository.Sub, error) { return &repository.Sub{}, nil }
-func (r *subTestRepo) Update(sub repository.Sub) error           { return nil }
-func (r *subTestRepo) Delete(id int64) error                     { return nil }
-func (r *subTestRepo) List() (*[]repository.Sub, error)          { return &[]repository.Sub{}, nil }
-func (r *subTestRepo) GetPriceForRange(idSub int64, idUser uuid.UUID,
-	startData time.Time, endData time.Time) (int64, error) {
-	return 0, nil
-}
-
 // SubService - бизнесс-логика для работы с подписками
 type SubService struct {
 	repo SubRepo
