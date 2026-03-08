@@ -45,7 +45,7 @@ func (r *SubRepo) AutoMigrate() error {
 // Create - создание записи в базе
 func (r *SubRepo) Create(sub Sub) error {
 
-	if err := r.DB.Create(&sub); err != nil {
+	if err := r.DB.Create(&sub).Error; err != nil {
 		return ErrInvalidId
 	}
 
@@ -57,7 +57,7 @@ func (r *SubRepo) GetByID(id int64) (*Sub, error) {
 
 	var sub Sub
 
-	if err := r.DB.First(&sub, id); err != nil {
+	if err := r.DB.First(&sub, id).Error; err != nil {
 		return nil, ErrNotFound
 	}
 
@@ -67,7 +67,7 @@ func (r *SubRepo) GetByID(id int64) (*Sub, error) {
 // Update - обновление инфолмации записи
 func (r *SubRepo) Update(sub Sub) error {
 
-	if err := r.DB.Save(&sub); err != nil {
+	if err := r.DB.Save(&sub).Error; err != nil {
 		return ErrNotFound
 	}
 
@@ -78,11 +78,11 @@ func (r *SubRepo) Update(sub Sub) error {
 func (r *SubRepo) Delete(id int64) error {
 
 	var sub Sub
-	if err := r.DB.First(&sub, id); err != nil {
+	if err := r.DB.First(&sub, id).Error; err != nil {
 		return ErrNotFound
 	}
 
-	if err := r.DB.Delete(&sub); err != nil {
+	if err := r.DB.Delete(&sub).Error; err != nil {
 		return ErrReqDB
 	}
 
@@ -95,7 +95,7 @@ func (r *SubRepo) List() (*[]Sub, error) {
 
 	var subs []Sub
 
-	if err := r.DB.Find(&subs); err != nil {
+	if err := r.DB.Find(&subs).Error; err != nil {
 		return nil, ErrReqDB
 	}
 
@@ -108,8 +108,17 @@ func (r *SubRepo) GetPriceForRange(idSub int64, idUser uuid.UUID,
 
 	var prices int64
 
+	var subName string
 	err := r.DB.Model(&Sub{}).
-		Where(&Sub{ID: idSub, UserID: idUser}).
+		Where("id = ?", idSub).
+		Select("name").
+		Scan(&subName).Error
+	if err != nil {
+		return 0, ErrReqDB
+	}
+
+	err = r.DB.Model(&Sub{}).
+		Where("name = ?", subName).
 		Where("start_date >= ?", startData).
 		Where("end_date <= ?", endData).
 		Select("COALESCE(SUM(price), 0)").

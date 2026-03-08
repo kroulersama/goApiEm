@@ -27,7 +27,7 @@ func (h *handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /subs/{id}", h.UpdateSub)
 	mux.HandleFunc("DELETE /subs/{id}", h.DeleteSubs)
 	mux.HandleFunc("GET /subs", h.GetSubs)
-	mux.HandleFunc("Get /subs/{id}/prices", h.GetPrices)
+	mux.HandleFunc("GET /subs/{id}/prices", h.GetPrices)
 }
 
 // CreateSubs - создаёт подписку
@@ -174,6 +174,7 @@ func (h *handler) GetSubs(w http.ResponseWriter, r *http.Request) {
 
 // GetPrices - возврящает сумму подписки за период по id юзера и id подписки
 func (h *handler) GetPrices(w http.ResponseWriter, r *http.Request) {
+
 	idStr := r.PathValue("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -182,7 +183,6 @@ func (h *handler) GetPrices(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var input struct {
-		Name      string     `json:"name"`
 		UserID    uuid.UUID  `json:"user_id"`
 		StartDate time.Time  `json:"start_date"`
 		EndDate   *time.Time `json:"end_date"`
