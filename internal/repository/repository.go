@@ -1,18 +1,21 @@
 package repository
 
 import (
+	"errors"
 	"log"
 	"time"
 
-	"dev.gaijin.team/go/golib/logger"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
+var ErrNotFound = errors.New("запись не найдена")
+var ErrInvalidId = errors.New("id повторился")
+var ErrReqDB = errors.New("ошибка обращения к базе данных")
+
 // SubRepo - репозиторий для работы с подписками
 type SubRepo struct {
-	DB  *gorm.DB
-	Log *logger.Logger
+	DB *gorm.DB
 }
 
 // NewSubRepo - создаёт новую запись сервиса
@@ -40,53 +43,81 @@ func (r *SubRepo) AutoMigrate() error {
 }
 
 // Create - создание записи в базе
-func (r *SubRepo) Create(sub Sub) *Sub {
+func (r *SubRepo) Create(sub Sub) error {
 
-	r.DB.Create(sub)
+	if err := r.DB.Create(&sub); err != nil {
+		return ErrInvalidId
+	}
 
-	return &sub
+	return nil
 }
 
 // ReedById - чтение одной записи по id
-func (r *SubRepo) GetByID(id int64) *Sub {
+func (r *SubRepo) GetByID(id int64) (*Sub, error) {
 
 	var sub Sub
 
-	r.DB.First(&sub, id)
+	if err := r.DB.First(&sub, id); err != nil {
+		return nil, ErrNotFound
+	}
 
-	return &sub
+	return &sub, nil
 }
 
 // Update - обновление инфолмации записи
-func (r *SubRepo) Update(sub Sub) *Sub {
+func (r *SubRepo) Update(sub Sub) error {
 
-	r.DB.Save(&sub)
+	if err := r.DB.Save(&sub); err != nil {
+		return ErrNotFound
+	}
 
-	return &sub
+	return nil
 }
 
 // Delete - удалиние записи из базы по id
-func (r *SubRepo) Delete(id int64) {
+func (r *SubRepo) Delete(id int64) error {
 
 	var sub Sub
-	r.DB.First(&sub, id)
+	if err := r.DB.First(&sub, id); err != nil {
+		return ErrNotFound
+	}
 
-	r.DB.Delete(&sub)
+	if err := r.DB.Delete(&sub); err != nil {
+		return ErrReqDB
+	}
 
+	return nil
+
+}
+
+// List - возвращает все подписки
+func (r *SubRepo) List() (*[]Sub, error) {
+
+	var subs []Sub
+
+	if err := r.DB.Find(&subs); err != nil {
+		return nil, ErrReqDB
+	}
+
+	return &subs, nil
 }
 
 // GetPriceForRange - выявление суммы подписки за период времени по id подписки, и id юзера
 func (r *SubRepo) GetPriceForRange(idSub int64, idUser uuid.UUID,
-	startData time.Time, endData time.Time) int64 {
+	startData time.Time, endData time.Time) (int64, error) {
 
 	var prices int64
-	r.DB.Model(&Sub{}).
+
+	err := r.DB.Model(&Sub{}).
 		Where(&Sub{ID: idSub, UserID: idUser}).
 		Where("start_date >= ?", startData).
 		Where("end_date <= ?", endData).
 		Select("COALESCE(SUM(price), 0)").
 		Row().
 		Scan(&prices)
+	if err != nil {
+		return 0, ErrReqDB
+	}
 
-	return prices
+	return prices, nil
 }

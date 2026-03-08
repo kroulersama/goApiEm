@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"goApiEM/internal/repository"
 	"goApiEM/internal/service"
 	"log"
 	"net/http"
@@ -25,7 +26,7 @@ func (h *handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /subs/{id}", h.GetSubByID)
 	mux.HandleFunc("POST /subs/{id}", h.UpdateSub)
 	mux.HandleFunc("DELETE /subs/{id}", h.DeleteSubs)
-	// mux.HandleFunc("GET /subs", h.GetSubs)
+	mux.HandleFunc("GET /subs", h.GetSubs)
 	mux.HandleFunc("Get /subs/{id}/prices", h.GetPrices)
 }
 
@@ -69,11 +70,12 @@ func (h *handler) GetSubByID(w http.ResponseWriter, r *http.Request) {
 
 	sub, err := h.service.GetByIDSub(id)
 	if err != nil {
-		if errors.Is(err, nil) {
+		switch {
+		case errors.Is(err, repository.ErrNotFound):
 			http.Error(w, "подписка не найдена", http.StatusNotFound)
-			return
+		default:
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -109,11 +111,13 @@ func (h *handler) UpdateSub(w http.ResponseWriter, r *http.Request) {
 	sub, err := h.service.UpdateSub(id, input.Name, input.Price, input.UserID,
 		input.StartDate, input.EndDate)
 	if err != nil {
-		if errors.Is(err, nil) {
+		switch {
+		case errors.Is(err, repository.ErrNotFound):
 			http.Error(w, "подписка не найдена", http.StatusNotFound)
-			return
+		default:
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -133,15 +137,39 @@ func (h *handler) DeleteSubs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = h.service.DeleteSub(id); err != nil {
-		if errors.Is(err, nil) {
+		switch {
+		case errors.Is(err, repository.ErrNotFound):
 			http.Error(w, "подписка не найдена", http.StatusNotFound)
-			return
+		case errors.Is(err, repository.ErrReqDB):
+			http.Error(w, "Ошибка обращения к базе данных", http.StatusInternalServerError)
+		default:
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// GetSubs - возвращает все подписки
+func (h *handler) GetSubs(w http.ResponseWriter, r *http.Request) {
+
+	subs, err := h.service.GetSubs()
+	if err != nil {
+		switch {
+		case errors.Is(err, repository.ErrReqDB):
+			http.Error(w, "Ошибка обращения к базе данных", http.StatusInternalServerError)
+		default:
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err = json.NewEncoder(w).Encode(subs); err != nil {
+		log.Printf("Ошибка кодирования JSON: %v", err)
+	}
 }
 
 // GetPrices - возврящает сумму подписки за период по id юзера и id подписки
@@ -167,11 +195,12 @@ func (h *handler) GetPrices(w http.ResponseWriter, r *http.Request) {
 
 	prices, err := h.service.GetPriceForRangeSub(id, input.UserID, input.StartDate, *input.EndDate)
 	if err != nil {
-		if errors.Is(err, nil) {
-			http.Error(w, "подписка не найдена", http.StatusNotFound)
-			return
+		switch {
+		case errors.Is(err, repository.ErrReqDB):
+			http.Error(w, "Ошибка обращения к базе данных", http.StatusInternalServerError)
+		default:
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
