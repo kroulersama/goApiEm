@@ -39,3 +39,14 @@ Swagger UI доступен по адресу:
 ```
 http://localhost:8080/swagger/
 ```
+## Назначение файлов
+
+```
+cmd      - вход
+docs     - swagger
+internal - вся логика
+  - config     - логгер
+  - handler    - обработка http
+  - repository - обработка с базой данных
+  - service    - бизнесс логика 
+```
