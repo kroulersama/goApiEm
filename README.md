@@ -4,32 +4,21 @@ API для управления подписками пользователей.
 
 ## Запуск
 
-### Локальный запуск
-
 ```
-go mod download
-go run ./cmd/goApiEM
-```
-
-
-### Запуск в Docker
-
-```
-docker build -t goapiem .
-docker run -p 8080:8080 goapiem
+docker compose up --build -d
 ```
 
 ## Конфигурация (.env)
 
-
-DB_HOST=localhost
+```
+DB_HOST=db
 DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=password
-DB_NAME=subscriptions
+DB_USER=demo
+DB_PASSWORD=secret
+DB_NAME=demo_db
 DB_SSLMODE=disable
 SERVER_PORT=8080
-
+```
 
 
 ## Эндпоинты
@@ -41,12 +30,12 @@ SERVER_PORT=8080
 | GET    | /subs/{id}          | Получить подписку по ID     |
 | POST   | /subs/{id}          | Обновить подписку           |
 | DELETE | /subs/{id}          | Удалить подписку            |
-| GET    | /subs/{id}/prices   | Аналитика за период         |
+| GET    | /subs/{id}/prices   | Сумма за период             |
 
 ## Документация
 
 Swagger UI доступен по адресу:
 
 ```
-http://localhost:8080/swagger/index.html
+http://localhost:8080/swagger/
 ```
